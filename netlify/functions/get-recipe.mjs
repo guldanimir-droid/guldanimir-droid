@@ -67,6 +67,16 @@ const splitDetectedProducts = (value) =>
     .map((item) => item.replace(/^[-•\d.)\s]+/, "").trim())
     .filter(Boolean);
 
+const toDetectedProductsArray = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => String(item || "").trim())
+      .filter(Boolean);
+  }
+
+  return splitDetectedProducts(value);
+};
+
 const extractJsonText = (value) => {
   const raw = String(value || "").trim();
   if (!raw) {
@@ -124,8 +134,13 @@ const toStepsArray = (steps) => {
 };
 
 const buildOzonSearchUrl = (productName) => {
-  const query = encodeURIComponent(productName);
-  return `https://www.ozon.ru/search/?text=${query}`;
+  const params = new URLSearchParams({
+    text: productName,
+    utm_source: "zest_smart",
+    utm_medium: "referral",
+    utm_campaign: "recipe",
+  });
+  return `https://www.ozon.ru/search/?${params.toString()}`;
 };
 
 const collectMissingIngredients = (ingredients, detectedProducts) => {
@@ -286,10 +301,17 @@ export default async (req) => {
       title: String(recipeJson?.title || "Рецепт от Zest Smart").trim(),
       ingredients: toIngredientsArray(recipeJson?.ingredients),
       steps: toStepsArray(recipeJson?.steps),
-      detected_products: detectedProducts,
+      detected_products: toDetectedProductsArray(recipeJson?.detected_products),
     };
 
-    const missingIngredients = collectMissingIngredients(recipeData.ingredients, detectedProducts);
+    if (!recipeData.detected_products.length) {
+      recipeData.detected_products = detectedProducts;
+    }
+
+    const missingIngredients = collectMissingIngredients(
+      recipeData.ingredients,
+      recipeData.detected_products
+    );
     recipeData.missing_ingredients = missingIngredients;
 
     const fallbackRecipeText = buildFallbackRecipeText(recipeData);

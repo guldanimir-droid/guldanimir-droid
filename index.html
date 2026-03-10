@@ -434,8 +434,9 @@
 
         <div class="email-signup">
             <h3 style="color: #eff8f1;">Оставьте email и узнайте первыми о запуске</h3>
-            <form class="email-form" name="email-form" method="POST" data-netlify="true" id="waitlistForm">
+            <form class="email-form" name="email-form" method="POST" action="/" data-netlify="true" netlify-honeypot="_gotcha" id="waitlistForm">
                 <input type="hidden" name="form-name" value="email-form">
+                <input type="hidden" name="_gotcha">
                 <input class="email-input" type="email" name="email" placeholder="you@example.com" required>
                 <button class="btn" style="margin: 0;" type="submit">Подписаться</button>
             </form>
@@ -479,6 +480,16 @@
                 reader.onerror = () => reject(new Error("Не удалось прочитать файл."));
                 reader.readAsDataURL(file);
             });
+
+        const buildOzonSearchUrl = (productName) => {
+            const params = new URLSearchParams({
+                text: productName || "",
+                utm_source: "zest_smart",
+                utm_medium: "referral",
+                utm_campaign: "recipe"
+            });
+            return `https://www.ozon.ru/search/?${params.toString()}`;
+        };
 
         const createRecipeList = (items, ordered = false) => {
             const list = document.createElement(ordered ? "ol" : "ul");
@@ -550,7 +561,7 @@
 
                 const link = document.createElement("a");
                 link.className = "order-btn";
-                link.href = item.ozon_search_url || `https://www.ozon.ru/search/?text=${encodeURIComponent(item.name)}`;
+                link.href = item.ozon_search_url || buildOzonSearchUrl(item.name);
                 link.target = "_blank";
                 link.rel = "noopener noreferrer";
                 link.textContent = "Заказать на Ozon";
@@ -648,7 +659,7 @@
                 }
 
                 waitlistForm.reset();
-                setStatus(emailStatus, "Спасибо! Email сохранен.", "is-success");
+                setStatus(emailStatus, "Спасибо! Мы сообщим вам о запуске первыми.", "is-success");
             } catch (error) {
                 setStatus(emailStatus, error.message || "Ошибка отправки формы.", "is-error");
             }
