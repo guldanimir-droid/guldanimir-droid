@@ -18,6 +18,14 @@ const json = (status, body) =>
     },
   });
 
+const getEnv = (key) => {
+  if (globalThis.Netlify?.env?.get) {
+    return Netlify.env.get(key);
+  }
+
+  return process.env[key];
+};
+
 const parseDataUrl = (imageBase64, mimeType) => {
   if (!imageBase64 || typeof imageBase64 !== "string") {
     return { error: "Изображение не передано." };
@@ -45,6 +53,128 @@ const parseDataUrl = (imageBase64, mimeType) => {
   };
 };
 
+const normalizeName = (value) =>
+  String(value || "")
+    .toLowerCase()
+    .replace(/\([^)]*\)/g, "")
+    .replace(/[.,;:!?"'`«»]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const splitDetectedProducts = (value) =>
+  String(value || "")
+    .split(/[\n,;]+/)
+    .map((item) => item.replace(/^[-•\d.)\s]+/, "").trim())
+    .filter(Boolean);
+
+const extractJsonText = (value) => {
+  const raw = String(value || "").trim();
+  if (!raw) {
+    return "";
+  }
+
+  const fencedMatch = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fencedMatch?.[1]) {
+    return fencedMatch[1].trim();
+  }
+
+  const first = raw.indexOf("{");
+  const last = raw.lastIndexOf("}");
+
+  if (first >= 0 && last > first) {
+    return raw.slice(first, last + 1);
+  }
+
+  return raw;
+};
+
+const parseRecipeJson = (value) => {
+  const jsonText = extractJsonText(value);
+  return JSON.parse(jsonText);
+};
+
+const toIngredientsArray = (ingredients) => {
+  if (!Array.isArray(ingredients)) {
+    return [];
+  }
+
+  return ingredients
+    .map((item) => {
+      if (typeof item === "string") {
+        return {
+          name: item.trim(),
+          quantity: "по вкусу",
+        };
+      }
+
+      return {
+        name: String(item?.name || "").trim(),
+        quantity: String(item?.quantity || "по вкусу").trim(),
+      };
+    })
+    .filter((item) => item.name);
+};
+
+const toStepsArray = (steps) => {
+  if (!Array.isArray(steps)) {
+    return [];
+  }
+
+  return steps.map((step) => String(step || "").trim()).filter(Boolean);
+};
+
+const buildOzonSearchUrl = (productName) => {
+  const query = encodeURIComponent(productName);
+  return `https://www.ozon.ru/search/?text=${query}`;
+};
+
+const collectMissingIngredients = (ingredients, detectedProducts) => {
+  const detectedSet = new Set(detectedProducts.map((item) => normalizeName(item)).filter(Boolean));
+
+  return ingredients
+    .filter((ingredient) => {
+      const ingredientName = normalizeName(ingredient.name);
+      if (!ingredientName) {
+        return false;
+      }
+
+      for (const detectedName of detectedSet) {
+        if (
+          ingredientName === detectedName ||
+          ingredientName.includes(detectedName) ||
+          detectedName.includes(ingredientName)
+        ) {
+          return false;
+        }
+      }
+
+      return true;
+    })
+    .map((ingredient) => ({
+      name: ingredient.name,
+      quantity: ingredient.quantity,
+      ozon_search_url: buildOzonSearchUrl(ingredient.name),
+    }));
+};
+
+const buildFallbackRecipeText = (recipeData) => {
+  const ingredientLines = recipeData.ingredients
+    .map((item) => `- ${item.name}: ${item.quantity}`)
+    .join("\n");
+
+  const stepLines = recipeData.steps.map((item, idx) => `${idx + 1}. ${item}`).join("\n");
+
+  return [
+    `Название блюда: ${recipeData.title}`,
+    "",
+    "Ингредиенты:",
+    ingredientLines || "- Нет данных",
+    "",
+    "Пошаговый рецепт:",
+    stepLines || "1. Нет данных",
+  ].join("\n");
+};
+
 export default async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
@@ -54,7 +184,8 @@ export default async (req) => {
     return json(405, { error: "Method Not Allowed" });
   }
 
-  if (!process.env.OPENAI_API_KEY) {
+  const openAiApiKey = getEnv("OPENAI_API_KEY");
+  if (!openAiApiKey) {
     return json(500, { error: "OPENAI_API_KEY не настроен в переменных окружения." });
   }
 
@@ -84,9 +215,9 @@ export default async (req) => {
     return json(400, { error: "Размер изображения должен быть не более 5 МБ." });
   }
 
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const visionModel = process.env.OPENAI_VISION_MODEL || "gpt-4.1-mini";
-  const recipeModel = process.env.OPENAI_RECIPE_MODEL || "gpt-4.1-mini";
+  const client = new OpenAI({ apiKey: openAiApiKey });
+  const visionModel = getEnv("OPENAI_VISION_MODEL") || "gpt-4.1-mini";
+  const recipeModel = getEnv("OPENAI_RECIPE_MODEL") || "gpt-4.1-mini";
 
   try {
     const imageDataUrl = `data:${mimeType};base64,${base64Data}`;
@@ -99,7 +230,7 @@ export default async (req) => {
           content: [
             {
               type: "input_text",
-              text: "Какие продукты на этом фото? Перечисли их просто списком через запятую. Если продукты неразличимы, так и напиши.",
+              text: "Определи продукты на фото. Верни только список названий через запятую, без пояснений.",
             },
             {
               type: "input_image",
@@ -111,21 +242,25 @@ export default async (req) => {
       max_output_tokens: 250,
     });
 
-    const recognizedProducts = visionResponse.output_text?.trim();
+    const recognizedProductsText = visionResponse.output_text?.trim();
+    const detectedProducts = splitDetectedProducts(recognizedProductsText);
 
-    if (!recognizedProducts) {
+    if (!detectedProducts.length) {
       return json(502, {
         error: "Не удалось распознать продукты на фото. Попробуйте другое изображение.",
       });
     }
 
-    const recipePrompt = `Ты креативный шеф-повар. Предложи интересный рецепт из этих продуктов: ${recognizedProducts}.
+    const recipePrompt = `Ты креативный шеф-повар. Предложи интересный рецепт из этих продуктов: ${detectedProducts.join(", ")}.
 Если продуктов мало, предложи рецепт с минимальными добавками (соль, масло, вода — считай, что они есть).
-Ответ дай строго в формате:
-Название блюда:
-Ингредиенты (с количеством):
-Пошаговый рецепт:
-Недостающие продукты (если есть):`;
+Ответ верни ТОЛЬКО в виде JSON-объекта со следующими полями:
+{
+  "title": "Название блюда",
+  "ingredients": [{"name": "помидор", "quantity": "2 шт"}],
+  "steps": ["Шаг 1", "Шаг 2"],
+  "detected_products": ["помидор", "чеснок"]
+}
+Пиши на русском языке.`;
 
     const recipeResponse = await client.responses.create({
       model: recipeModel,
@@ -133,15 +268,37 @@ export default async (req) => {
       max_output_tokens: 900,
     });
 
-    const recipe = recipeResponse.output_text?.trim();
-
-    if (!recipe) {
+    const recipeRawText = recipeResponse.output_text?.trim();
+    if (!recipeRawText) {
       return json(502, { error: "Не удалось сгенерировать рецепт. Попробуйте еще раз." });
     }
 
+    let recipeJson;
+    try {
+      recipeJson = parseRecipeJson(recipeRawText);
+    } catch {
+      return json(502, {
+        error: "AI вернул рецепт в некорректном формате. Попробуйте еще раз.",
+      });
+    }
+
+    const recipeData = {
+      title: String(recipeJson?.title || "Рецепт от Zest Smart").trim(),
+      ingredients: toIngredientsArray(recipeJson?.ingredients),
+      steps: toStepsArray(recipeJson?.steps),
+      detected_products: detectedProducts,
+    };
+
+    const missingIngredients = collectMissingIngredients(recipeData.ingredients, detectedProducts);
+    recipeData.missing_ingredients = missingIngredients;
+
+    const fallbackRecipeText = buildFallbackRecipeText(recipeData);
+
     return json(200, {
-      recognizedProducts,
-      recipe,
+      recognizedProducts: detectedProducts.join(", "),
+      recipe: fallbackRecipeText,
+      recipeData,
+      missingIngredients,
     });
   } catch (error) {
     const status = error?.status || 500;

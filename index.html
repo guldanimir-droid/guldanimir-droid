@@ -267,6 +267,57 @@
             white-space: pre-wrap;
             color: #eef5ef;
         }
+        .recipe-title {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #f1f9f3;
+        }
+        .recipe-section-title {
+            margin: 12px 0 6px;
+            color: #d9f0df;
+            font-weight: 700;
+        }
+        .recipe-list {
+            margin: 0;
+            padding-left: 20px;
+            color: #eef5ef;
+        }
+        .missing-list {
+            display: grid;
+            gap: 10px;
+        }
+        .missing-item {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(240, 255, 244, 0.18);
+            border-radius: 10px;
+            padding: 10px 12px;
+            background: rgba(10, 18, 14, 0.45);
+        }
+        .missing-item-meta {
+            color: #d7e4da;
+        }
+        .order-btn {
+            display: inline-block;
+            background: rgba(39, 174, 96, 0.92);
+            border: 0;
+            color: #fff;
+            border-radius: 999px;
+            padding: 8px 14px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+        .order-btn:hover {
+            background: rgba(46, 204, 113, 1);
+        }
+        .empty-state {
+            color: #d7e4da;
+        }
         .email-signup {
             margin-top: 24px;
             text-align: center;
@@ -374,12 +425,17 @@
                 <h4>Ваш рецепт</h4>
                 <div class="recipe-text" id="recipeOutput"></div>
             </div>
+
+            <div class="result-card" id="missingCard">
+                <h4>Недостающие продукты</h4>
+                <div id="missingOutput"></div>
+            </div>
         </section>
 
         <div class="email-signup">
             <h3 style="color: #eff8f1;">Оставьте email и узнайте первыми о запуске</h3>
-            <form class="email-form" name="waitlist" method="POST" data-netlify="true" id="waitlistForm">
-                <input type="hidden" name="form-name" value="waitlist">
+            <form class="email-form" name="email-form" method="POST" data-netlify="true" id="waitlistForm">
+                <input type="hidden" name="form-name" value="email-form">
                 <input class="email-input" type="email" name="email" placeholder="you@example.com" required>
                 <button class="btn" style="margin: 0;" type="submit">Подписаться</button>
             </form>
@@ -403,6 +459,8 @@
         const recipeCard = document.getElementById("recipeCard");
         const productsOutput = document.getElementById("productsOutput");
         const recipeOutput = document.getElementById("recipeOutput");
+        const missingCard = document.getElementById("missingCard");
+        const missingOutput = document.getElementById("missingOutput");
         const waitlistForm = document.getElementById("waitlistForm");
         const emailStatus = document.getElementById("emailStatus");
 
@@ -422,6 +480,90 @@
                 reader.readAsDataURL(file);
             });
 
+        const createRecipeList = (items, ordered = false) => {
+            const list = document.createElement(ordered ? "ol" : "ul");
+            list.className = "recipe-list";
+
+            items.forEach((item) => {
+                const li = document.createElement("li");
+                li.textContent = item;
+                list.appendChild(li);
+            });
+
+            return list;
+        };
+
+        const renderRecipe = (recipeData, fallbackRecipeText) => {
+            recipeOutput.textContent = "";
+
+            if (!recipeData || typeof recipeData !== "object") {
+                recipeOutput.textContent = fallbackRecipeText || "";
+                return;
+            }
+
+            const title = document.createElement("div");
+            title.className = "recipe-title";
+            title.textContent = recipeData.title || "Рецепт";
+            recipeOutput.appendChild(title);
+
+            const ingredientsTitle = document.createElement("div");
+            ingredientsTitle.className = "recipe-section-title";
+            ingredientsTitle.textContent = "Ингредиенты";
+            recipeOutput.appendChild(ingredientsTitle);
+
+            const ingredients = Array.isArray(recipeData.ingredients)
+                ? recipeData.ingredients.map((item) => `${item?.name || "Ингредиент"} — ${item?.quantity || "по вкусу"}`)
+                : [];
+            recipeOutput.appendChild(createRecipeList(ingredients.length ? ingredients : ["Нет данных"]));
+
+            const stepsTitle = document.createElement("div");
+            stepsTitle.className = "recipe-section-title";
+            stepsTitle.textContent = "Шаги приготовления";
+            recipeOutput.appendChild(stepsTitle);
+
+            const steps = Array.isArray(recipeData.steps) ? recipeData.steps : [];
+            recipeOutput.appendChild(createRecipeList(steps.length ? steps : ["Нет данных"], true));
+        };
+
+        const renderMissingIngredients = (missingIngredients) => {
+            missingOutput.textContent = "";
+
+            if (!Array.isArray(missingIngredients) || !missingIngredients.length) {
+                const empty = document.createElement("div");
+                empty.className = "empty-state";
+                empty.textContent = "Все основные ингредиенты уже есть. Заказ не требуется.";
+                missingOutput.appendChild(empty);
+                missingCard.classList.add("show");
+                return;
+            }
+
+            const list = document.createElement("div");
+            list.className = "missing-list";
+
+            missingIngredients.forEach((item) => {
+                const row = document.createElement("div");
+                row.className = "missing-item";
+
+                const meta = document.createElement("div");
+                meta.className = "missing-item-meta";
+                meta.textContent = `${item.name} — ${item.quantity || "по вкусу"}`;
+
+                const link = document.createElement("a");
+                link.className = "order-btn";
+                link.href = item.ozon_search_url || `https://www.ozon.ru/search/?text=${encodeURIComponent(item.name)}`;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                link.textContent = "Заказать на Ozon";
+
+                row.appendChild(meta);
+                row.appendChild(link);
+                list.appendChild(row);
+            });
+
+            missingOutput.appendChild(list);
+            missingCard.classList.add("show");
+        };
+
         fridgeImage.addEventListener("change", () => {
             const file = fridgeImage.files?.[0];
             if (!file) {
@@ -435,6 +577,7 @@
             const file = fridgeImage.files?.[0];
             productsCard.classList.remove("show");
             recipeCard.classList.remove("show");
+            missingCard.classList.remove("show");
 
             if (!file) {
                 setStatus(aiStatus, "Сначала выберите фото продуктов.", "is-error");
@@ -471,8 +614,13 @@
                     throw new Error(data.error || "Не удалось получить рецепт.");
                 }
 
-                productsOutput.textContent = data.recognizedProducts;
-                recipeOutput.textContent = data.recipe;
+                const detectedProducts = Array.isArray(data.recipeData?.detected_products)
+                    ? data.recipeData.detected_products.join(", ")
+                    : data.recognizedProducts;
+
+                productsOutput.textContent = detectedProducts || "Не удалось определить продукты.";
+                renderRecipe(data.recipeData, data.recipe);
+                renderMissingIngredients(data.missingIngredients || data.recipeData?.missing_ingredients || []);
                 productsCard.classList.add("show");
                 recipeCard.classList.add("show");
                 setStatus(aiStatus, "Рецепт готов.", "is-success");
