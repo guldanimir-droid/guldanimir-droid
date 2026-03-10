@@ -1,0 +1,12 @@
+{
+  "name": "zest-smart",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "openai": "^5.20.3"
+  }
+}

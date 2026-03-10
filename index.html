@@ -23,7 +23,7 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: url('./assets/images/fridge-bg.jpg') center center / cover no-repeat fixed;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -33,19 +33,20 @@
         .container {
             max-width: 1000px;
             width: 100%;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(12, 22, 18, 0.55);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.35);
             padding: 40px;
             transition: transform 0.3s ease;
+            color: #eef5ef;
         }
         .container:hover {
             transform: translateY(-5px);
         }
         h1 {
             font-size: 3em;
-            color: #2c3e50;
+            color: #f3faf5;
             text-align: center;
             margin-bottom: 10px;
             letter-spacing: -0.5px;
@@ -53,7 +54,7 @@
         .subtitle {
             text-align: center;
             font-size: 1.3em;
-            color: #7f8c8d;
+            color: #d4e2d8;
             margin-bottom: 40px;
             font-weight: 300;
         }
@@ -77,12 +78,13 @@
         .step {
             flex: 1;
             min-width: 220px;
-            background: white;
+            background: rgba(10, 18, 14, 0.6);
             padding: 25px 15px;
             border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             transition: all 0.3s ease;
             text-align: center;
+            border: 1px solid rgba(240, 255, 244, 0.18);
         }
         .step:hover {
             transform: scale(1.03);
@@ -106,10 +108,10 @@
             display: block;
             font-size: 1.3em;
             margin-bottom: 8px;
-            color: #2c3e50;
+            color: #eff8f1;
         }
         .step p {
-            color: #7f8c8d;
+            color: #d0ddd4;
         }
         .features {
             display: flex;
@@ -122,8 +124,9 @@
             flex: 1 1 200px;
             text-align: center;
             padding: 20px;
-            background: rgba(255,255,255,0.5);
+            background: rgba(10, 18, 14, 0.58);
             border-radius: 15px;
+            border: 1px solid rgba(240, 255, 244, 0.18);
         }
         .feature span {
             font-size: 2.5em;
@@ -131,11 +134,11 @@
             margin-bottom: 10px;
         }
         .feature h3 {
-            color: #2c3e50;
+            color: #eff8f1;
             margin-bottom: 5px;
         }
         .feature p {
-            color: #7f8c8d;
+            color: #d0ddd4;
             font-size: 0.9em;
         }
         .btn {
@@ -165,8 +168,8 @@
         .footer {
             text-align: center;
             margin-top: 40px;
-            color: #95a5a6;
-            border-top: 1px solid rgba(0,0,0,0.05);
+            color: #d4e2d8;
+            border-top: 1px solid rgba(240, 255, 244, 0.2);
             padding-top: 20px;
         }
         .footer a {
@@ -176,10 +179,179 @@
         .footer a:hover {
             text-decoration: underline;
         }
+        .demo-block {
+            margin: 40px 0 20px;
+            background: rgba(10, 18, 14, 0.62);
+            border-radius: 16px;
+            border: 1px solid rgba(240, 255, 244, 0.2);
+            padding: 28px 24px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        .demo-title {
+            font-size: 1.8em;
+            color: #f1f9f3;
+            margin-bottom: 8px;
+        }
+        .demo-description {
+            color: #d0ddd4;
+            margin-bottom: 20px;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .file-input {
+            display: none;
+        }
+        .file-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            border: 2px solid #27ae60;
+            color: #eef8f2;
+            background: rgba(39, 174, 96, 0.28);
+            padding: 12px 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .file-label:hover {
+            background: rgba(39, 174, 96, 0.4);
+            transform: translateY(-1px);
+        }
+        .file-meta {
+            color: #d0ddd4;
+            font-size: 0.95em;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            display: none;
+        }
+        .status.is-loading {
+            display: block;
+            background: rgba(39, 174, 96, 0.25);
+            color: #ecf8f1;
+        }
+        .status.is-error {
+            display: block;
+            background: rgba(179, 58, 58, 0.3);
+            color: #ffecec;
+        }
+        .status.is-success {
+            display: block;
+            background: rgba(39, 174, 96, 0.25);
+            color: #ecf8f1;
+        }
+        .result-card {
+            display: none;
+            margin-top: 16px;
+            border: 1px solid rgba(240, 255, 244, 0.2);
+            border-radius: 12px;
+            padding: 14px;
+            background: rgba(10, 18, 14, 0.58);
+        }
+        .result-card.show {
+            display: block;
+        }
+        .result-card h4 {
+            color: #f1f9f3;
+            margin-bottom: 8px;
+        }
+        .recipe-text {
+            white-space: pre-wrap;
+            color: #eef5ef;
+        }
+        .recipe-title {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #f1f9f3;
+        }
+        .recipe-section-title {
+            margin: 12px 0 6px;
+            color: #d9f0df;
+            font-weight: 700;
+        }
+        .recipe-list {
+            margin: 0;
+            padding-left: 20px;
+            color: #eef5ef;
+        }
+        .missing-list {
+            display: grid;
+            gap: 10px;
+        }
+        .missing-item {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(240, 255, 244, 0.18);
+            border-radius: 10px;
+            padding: 10px 12px;
+            background: rgba(10, 18, 14, 0.45);
+        }
+        .missing-item-meta {
+            color: #d7e4da;
+        }
+        .order-btn {
+            display: inline-block;
+            background: rgba(39, 174, 96, 0.92);
+            border: 0;
+            color: #fff;
+            border-radius: 999px;
+            padding: 8px 14px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+        .order-btn:hover {
+            background: rgba(46, 204, 113, 1);
+        }
+        .empty-state {
+            color: #d7e4da;
+        }
+        .email-signup {
+            margin-top: 24px;
+            text-align: center;
+        }
+        .email-form {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 12px 0 4px;
+        }
+        .email-input {
+            min-width: 260px;
+            border: 1px solid rgba(240, 255, 244, 0.35);
+            border-radius: 999px;
+            padding: 12px 14px;
+            font-size: 1em;
+            background: rgba(10, 18, 14, 0.58);
+            color: #eef5ef;
+        }
+        .email-input::placeholder {
+            color: #c9d8cd;
+        }
+        .email-note {
+            font-size: 0.9em;
+            color: #d0ddd4;
+        }
         @media (max-width: 600px) {
             h1 { font-size: 2.2em; }
             .container { padding: 20px; }
             .step { min-width: 100%; }
+            .demo-block { padding: 22px 16px; }
+            .email-input { min-width: 100%; }
+            .btn { width: 100%; }
         }
     </style>
 </head>
@@ -193,7 +365,7 @@
             <img src="https://via.placeholder.com/800x400?text=Smart+Fridge+Scanner" alt="Сканирование холодильника">
         </div> -->
 
-        <p style="text-align: center; font-size: 1.2em; margin-bottom: 20px;">Открываете холодильник и не знаете, что приготовить? <strong>Zest Smart</strong> поможет!</p>
+        <p style="text-align: center; font-size: 1.2em; margin-bottom: 20px; color: #eef5ef;">Открываете холодильник и не знаете, что приготовить? <strong>Zest Smart</strong> поможет!</p>
 
         <div class="steps">
             <div class="step">
@@ -231,14 +403,267 @@
             </div>
         </div>
 
-        <div style="text-align: center;">
-            <a href="https://docs.google.com/forms/d/e/1FAIpQLScu5MaIjduWjLTZ0HsQpc-x0MVYQSi-yCrthpd1yxDfrTBq3w/viewform?usp=publish-editor" class="btn" target="_blank">Оставьте email и узнайте первыми о запуске</a>
-            <p style="font-size: 0.9em; color: #7f8c8d;">Никакого спама, только новости проекта.</p>
+        <section class="demo-block" id="demo">
+            <h2 class="demo-title">Попробуй прямо сейчас!</h2>
+            <p class="demo-description">Загрузите фото продуктов из холодильника, и Zest Smart предложит рецепт на их основе.</p>
+
+            <div class="form-row">
+                <label class="file-label" for="fridgeImage">Выбрать фото</label>
+                <input class="file-input" id="fridgeImage" type="file" accept="image/jpeg,image/png" capture="environment">
+                <button class="btn" id="getRecipeBtn" type="button">Получить рецепт</button>
+            </div>
+            <div class="file-meta" id="fileMeta">Поддерживаются JPG/PNG, до 5 МБ.</div>
+
+            <div class="status" id="aiStatus"></div>
+
+            <div class="result-card" id="productsCard">
+                <h4>Распознано на фото</h4>
+                <div id="productsOutput"></div>
+            </div>
+
+            <div class="result-card" id="recipeCard">
+                <h4>Ваш рецепт</h4>
+                <div class="recipe-text" id="recipeOutput"></div>
+            </div>
+
+            <div class="result-card" id="missingCard">
+                <h4>Недостающие продукты</h4>
+                <div id="missingOutput"></div>
+            </div>
+        </section>
+
+        <div class="email-signup">
+            <h3 style="color: #eff8f1;">Оставьте email и узнайте первыми о запуске</h3>
+            <form class="email-form" name="email-form" method="POST" action="/" data-netlify="true" netlify-honeypot="_gotcha" id="waitlistForm">
+                <input type="hidden" name="form-name" value="email-form">
+                <input type="hidden" name="_gotcha">
+                <input class="email-input" type="email" name="email" placeholder="you@example.com" required>
+                <button class="btn" style="margin: 0;" type="submit">Подписаться</button>
+            </form>
+            <div class="status" id="emailStatus"></div>
+            <p class="email-note">Никакого спама, только новости проекта.</p>
         </div>
 
         <div class="footer">
             © 2026 Zest Smart · <a href="mailto:hello.zestsmart@gmail.com">hello.zestsmart@gmail.com</a>
         </div>
     </div>
+    <script>
+        const MAX_FILE_SIZE = 5 * 1024 * 1024;
+        const ALLOWED_TYPES = ["image/jpeg", "image/png"];
+
+        const fridgeImage = document.getElementById("fridgeImage");
+        const getRecipeBtn = document.getElementById("getRecipeBtn");
+        const fileMeta = document.getElementById("fileMeta");
+        const aiStatus = document.getElementById("aiStatus");
+        const productsCard = document.getElementById("productsCard");
+        const recipeCard = document.getElementById("recipeCard");
+        const productsOutput = document.getElementById("productsOutput");
+        const recipeOutput = document.getElementById("recipeOutput");
+        const missingCard = document.getElementById("missingCard");
+        const missingOutput = document.getElementById("missingOutput");
+        const waitlistForm = document.getElementById("waitlistForm");
+        const emailStatus = document.getElementById("emailStatus");
+
+        const setStatus = (el, text, type) => {
+            el.textContent = text;
+            el.className = "status";
+            if (type) {
+                el.classList.add(type);
+            }
+        };
+
+        const toDataUrl = (file) =>
+            new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error("Не удалось прочитать файл."));
+                reader.readAsDataURL(file);
+            });
+
+        const buildOzonSearchUrl = (productName) => {
+            const params = new URLSearchParams({
+                text: productName || "",
+                utm_source: "zest_smart",
+                utm_medium: "referral",
+                utm_campaign: "recipe"
+            });
+            return `https://www.ozon.ru/search/?${params.toString()}`;
+        };
+
+        const createRecipeList = (items, ordered = false) => {
+            const list = document.createElement(ordered ? "ol" : "ul");
+            list.className = "recipe-list";
+
+            items.forEach((item) => {
+                const li = document.createElement("li");
+                li.textContent = item;
+                list.appendChild(li);
+            });
+
+            return list;
+        };
+
+        const renderRecipe = (recipeData, fallbackRecipeText) => {
+            recipeOutput.textContent = "";
+
+            if (!recipeData || typeof recipeData !== "object") {
+                recipeOutput.textContent = fallbackRecipeText || "";
+                return;
+            }
+
+            const title = document.createElement("div");
+            title.className = "recipe-title";
+            title.textContent = recipeData.title || "Рецепт";
+            recipeOutput.appendChild(title);
+
+            const ingredientsTitle = document.createElement("div");
+            ingredientsTitle.className = "recipe-section-title";
+            ingredientsTitle.textContent = "Ингредиенты";
+            recipeOutput.appendChild(ingredientsTitle);
+
+            const ingredients = Array.isArray(recipeData.ingredients)
+                ? recipeData.ingredients.map((item) => `${item?.name || "Ингредиент"} — ${item?.quantity || "по вкусу"}`)
+                : [];
+            recipeOutput.appendChild(createRecipeList(ingredients.length ? ingredients : ["Нет данных"]));
+
+            const stepsTitle = document.createElement("div");
+            stepsTitle.className = "recipe-section-title";
+            stepsTitle.textContent = "Шаги приготовления";
+            recipeOutput.appendChild(stepsTitle);
+
+            const steps = Array.isArray(recipeData.steps) ? recipeData.steps : [];
+            recipeOutput.appendChild(createRecipeList(steps.length ? steps : ["Нет данных"], true));
+        };
+
+        const renderMissingIngredients = (missingIngredients) => {
+            missingOutput.textContent = "";
+
+            if (!Array.isArray(missingIngredients) || !missingIngredients.length) {
+                const empty = document.createElement("div");
+                empty.className = "empty-state";
+                empty.textContent = "Все основные ингредиенты уже есть. Заказ не требуется.";
+                missingOutput.appendChild(empty);
+                missingCard.classList.add("show");
+                return;
+            }
+
+            const list = document.createElement("div");
+            list.className = "missing-list";
+
+            missingIngredients.forEach((item) => {
+                const row = document.createElement("div");
+                row.className = "missing-item";
+
+                const meta = document.createElement("div");
+                meta.className = "missing-item-meta";
+                meta.textContent = `${item.name} — ${item.quantity || "по вкусу"}`;
+
+                const link = document.createElement("a");
+                link.className = "order-btn";
+                link.href = item.ozon_search_url || buildOzonSearchUrl(item.name);
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                link.textContent = "Заказать на Ozon";
+
+                row.appendChild(meta);
+                row.appendChild(link);
+                list.appendChild(row);
+            });
+
+            missingOutput.appendChild(list);
+            missingCard.classList.add("show");
+        };
+
+        fridgeImage.addEventListener("change", () => {
+            const file = fridgeImage.files?.[0];
+            if (!file) {
+                fileMeta.textContent = "Поддерживаются JPG/PNG, до 5 МБ.";
+                return;
+            }
+            fileMeta.textContent = `Выбрано: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} МБ)`;
+        });
+
+        getRecipeBtn.addEventListener("click", async () => {
+            const file = fridgeImage.files?.[0];
+            productsCard.classList.remove("show");
+            recipeCard.classList.remove("show");
+            missingCard.classList.remove("show");
+
+            if (!file) {
+                setStatus(aiStatus, "Сначала выберите фото продуктов.", "is-error");
+                return;
+            }
+
+            if (!ALLOWED_TYPES.includes(file.type)) {
+                setStatus(aiStatus, "Поддерживаются только JPG и PNG.", "is-error");
+                return;
+            }
+
+            if (file.size > MAX_FILE_SIZE) {
+                setStatus(aiStatus, "Размер изображения должен быть не более 5 МБ.", "is-error");
+                return;
+            }
+
+            setStatus(aiStatus, "Готовим рецепт...", "is-loading");
+            getRecipeBtn.disabled = true;
+
+            try {
+                const imageBase64 = await toDataUrl(file);
+                const response = await fetch("/.netlify/functions/get-recipe", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        imageBase64,
+                        mimeType: file.type
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Не удалось получить рецепт.");
+                }
+
+                const detectedProducts = Array.isArray(data.recipeData?.detected_products)
+                    ? data.recipeData.detected_products.join(", ")
+                    : data.recognizedProducts;
+
+                productsOutput.textContent = detectedProducts || "Не удалось определить продукты.";
+                renderRecipe(data.recipeData, data.recipe);
+                renderMissingIngredients(data.missingIngredients || data.recipeData?.missing_ingredients || []);
+                productsCard.classList.add("show");
+                recipeCard.classList.add("show");
+                setStatus(aiStatus, "Рецепт готов.", "is-success");
+            } catch (error) {
+                setStatus(aiStatus, error.message || "Произошла ошибка. Попробуйте еще раз.", "is-error");
+            } finally {
+                getRecipeBtn.disabled = false;
+            }
+        });
+
+        waitlistForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            setStatus(emailStatus, "Отправка...", "is-loading");
+
+            try {
+                const formData = new FormData(waitlistForm);
+                const response = await fetch("/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: new URLSearchParams(formData).toString()
+                });
+
+                if (!response.ok) {
+                    throw new Error("Не удалось сохранить email.");
+                }
+
+                waitlistForm.reset();
+                setStatus(emailStatus, "Спасибо! Мы сообщим вам о запуске первыми.", "is-success");
+            } catch (error) {
+                setStatus(emailStatus, error.message || "Ошибка отправки формы.", "is-error");
+            }
+        });
+    </script>
 </body>
 </html>
