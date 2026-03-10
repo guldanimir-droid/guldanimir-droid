@@ -176,10 +176,123 @@
         .footer a:hover {
             text-decoration: underline;
         }
+        .demo-block {
+            margin: 40px 0 20px;
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid rgba(39, 174, 96, 0.2);
+            padding: 28px 24px;
+            box-shadow: 0 8px 20px rgba(39, 174, 96, 0.12);
+        }
+        .demo-title {
+            font-size: 1.8em;
+            color: #1f6f43;
+            margin-bottom: 8px;
+        }
+        .demo-description {
+            color: #5f6c72;
+            margin-bottom: 20px;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .file-input {
+            display: none;
+        }
+        .file-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            border: 2px solid #27ae60;
+            color: #1f6f43;
+            background: #effaf3;
+            padding: 12px 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .file-label:hover {
+            background: #dff4e7;
+            transform: translateY(-1px);
+        }
+        .file-meta {
+            color: #6d7f76;
+            font-size: 0.95em;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            display: none;
+        }
+        .status.is-loading {
+            display: block;
+            background: #eef9f2;
+            color: #1f6f43;
+        }
+        .status.is-error {
+            display: block;
+            background: #fff0f0;
+            color: #b33a3a;
+        }
+        .status.is-success {
+            display: block;
+            background: #eef9f2;
+            color: #1f6f43;
+        }
+        .result-card {
+            display: none;
+            margin-top: 16px;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 12px;
+            padding: 14px;
+            background: #fbfdfc;
+        }
+        .result-card.show {
+            display: block;
+        }
+        .result-card h4 {
+            color: #1f6f43;
+            margin-bottom: 8px;
+        }
+        .recipe-text {
+            white-space: pre-wrap;
+            color: #2f3c3f;
+        }
+        .email-signup {
+            margin-top: 24px;
+            text-align: center;
+        }
+        .email-form {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 12px 0 4px;
+        }
+        .email-input {
+            min-width: 260px;
+            border: 1px solid #c8d7cf;
+            border-radius: 999px;
+            padding: 12px 14px;
+            font-size: 1em;
+        }
+        .email-note {
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
         @media (max-width: 600px) {
             h1 { font-size: 2.2em; }
             .container { padding: 20px; }
             .step { min-width: 100%; }
+            .demo-block { padding: 22px 16px; }
+            .email-input { min-width: 100%; }
+            .btn { width: 100%; }
         }
     </style>
 </head>
@@ -231,14 +344,159 @@
             </div>
         </div>
 
-        <div style="text-align: center;">
-            <a href="https://docs.google.com/forms/d/e/1FAIpQLScu5MaIjduWjLTZ0HsQpc-x0MVYQSi-yCrthpd1yxDfrTBq3w/viewform?usp=publish-editor" class="btn" target="_blank">Оставьте email и узнайте первыми о запуске</a>
-            <p style="font-size: 0.9em; color: #7f8c8d;">Никакого спама, только новости проекта.</p>
+        <section class="demo-block" id="demo">
+            <h2 class="demo-title">Попробуй прямо сейчас!</h2>
+            <p class="demo-description">Загрузите фото продуктов из холодильника, и Zest Smart предложит рецепт на их основе.</p>
+
+            <div class="form-row">
+                <label class="file-label" for="fridgeImage">Выбрать фото</label>
+                <input class="file-input" id="fridgeImage" type="file" accept="image/jpeg,image/png" capture="environment">
+                <button class="btn" id="getRecipeBtn" type="button">Получить рецепт</button>
+            </div>
+            <div class="file-meta" id="fileMeta">Поддерживаются JPG/PNG, до 5 МБ.</div>
+
+            <div class="status" id="aiStatus"></div>
+
+            <div class="result-card" id="productsCard">
+                <h4>Распознано на фото</h4>
+                <div id="productsOutput"></div>
+            </div>
+
+            <div class="result-card" id="recipeCard">
+                <h4>Ваш рецепт</h4>
+                <div class="recipe-text" id="recipeOutput"></div>
+            </div>
+        </section>
+
+        <div class="email-signup">
+            <h3>Оставьте email и узнайте первыми о запуске</h3>
+            <form class="email-form" name="waitlist" method="POST" data-netlify="true" id="waitlistForm">
+                <input type="hidden" name="form-name" value="waitlist">
+                <input class="email-input" type="email" name="email" placeholder="you@example.com" required>
+                <button class="btn" style="margin: 0;" type="submit">Подписаться</button>
+            </form>
+            <div class="status" id="emailStatus"></div>
+            <p class="email-note">Никакого спама, только новости проекта.</p>
         </div>
 
         <div class="footer">
             © 2026 Zest Smart · <a href="mailto:hello.zestsmart@gmail.com">hello.zestsmart@gmail.com</a>
         </div>
     </div>
+    <script>
+        const MAX_FILE_SIZE = 5 * 1024 * 1024;
+        const ALLOWED_TYPES = ["image/jpeg", "image/png"];
+
+        const fridgeImage = document.getElementById("fridgeImage");
+        const getRecipeBtn = document.getElementById("getRecipeBtn");
+        const fileMeta = document.getElementById("fileMeta");
+        const aiStatus = document.getElementById("aiStatus");
+        const productsCard = document.getElementById("productsCard");
+        const recipeCard = document.getElementById("recipeCard");
+        const productsOutput = document.getElementById("productsOutput");
+        const recipeOutput = document.getElementById("recipeOutput");
+        const waitlistForm = document.getElementById("waitlistForm");
+        const emailStatus = document.getElementById("emailStatus");
+
+        const setStatus = (el, text, type) => {
+            el.textContent = text;
+            el.className = "status";
+            if (type) {
+                el.classList.add(type);
+            }
+        };
+
+        const toDataUrl = (file) =>
+            new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error("Не удалось прочитать файл."));
+                reader.readAsDataURL(file);
+            });
+
+        fridgeImage.addEventListener("change", () => {
+            const file = fridgeImage.files?.[0];
+            if (!file) {
+                fileMeta.textContent = "Поддерживаются JPG/PNG, до 5 МБ.";
+                return;
+            }
+            fileMeta.textContent = `Выбрано: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} МБ)`;
+        });
+
+        getRecipeBtn.addEventListener("click", async () => {
+            const file = fridgeImage.files?.[0];
+            productsCard.classList.remove("show");
+            recipeCard.classList.remove("show");
+
+            if (!file) {
+                setStatus(aiStatus, "Сначала выберите фото продуктов.", "is-error");
+                return;
+            }
+
+            if (!ALLOWED_TYPES.includes(file.type)) {
+                setStatus(aiStatus, "Поддерживаются только JPG и PNG.", "is-error");
+                return;
+            }
+
+            if (file.size > MAX_FILE_SIZE) {
+                setStatus(aiStatus, "Размер изображения должен быть не более 5 МБ.", "is-error");
+                return;
+            }
+
+            setStatus(aiStatus, "Готовим рецепт...", "is-loading");
+            getRecipeBtn.disabled = true;
+
+            try {
+                const imageBase64 = await toDataUrl(file);
+                const response = await fetch("/.netlify/functions/get-recipe", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        imageBase64,
+                        mimeType: file.type
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Не удалось получить рецепт.");
+                }
+
+                productsOutput.textContent = data.recognizedProducts;
+                recipeOutput.textContent = data.recipe;
+                productsCard.classList.add("show");
+                recipeCard.classList.add("show");
+                setStatus(aiStatus, "Рецепт готов.", "is-success");
+            } catch (error) {
+                setStatus(aiStatus, error.message || "Произошла ошибка. Попробуйте еще раз.", "is-error");
+            } finally {
+                getRecipeBtn.disabled = false;
+            }
+        });
+
+        waitlistForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            setStatus(emailStatus, "Отправка...", "is-loading");
+
+            try {
+                const formData = new FormData(waitlistForm);
+                const response = await fetch("/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: new URLSearchParams(formData).toString()
+                });
+
+                if (!response.ok) {
+                    throw new Error("Не удалось сохранить email.");
+                }
+
+                waitlistForm.reset();
+                setStatus(emailStatus, "Спасибо! Email сохранен.", "is-success");
+            } catch (error) {
+                setStatus(emailStatus, error.message || "Ошибка отправки формы.", "is-error");
+            }
+        });
+    </script>
 </body>
 </html>
