@@ -231,14 +231,104 @@
             </div>
         </div>
 
-        <div style="text-align: center;">
-            <a href="https://docs.google.com/forms/d/e/1FAIpQLScu5MaIjduWjLTZ0HsQpc-x0MVYQSi-yCrthpd1yxDfrTBq3w/viewform?usp=publish-editor" class="btn" target="_blank">Оставьте email и узнайте первыми о запуске</a>
-            <p style="font-size: 0.9em; color: #7f8c8d;">Никакого спама, только новости проекта.</p>
+        <div style="text-align: center; margin-top: 40px; padding: 20px; background: rgba(255, 255, 255, 0.8); border-radius: 15px;">
+            <h2>Попробуй прямо сейчас!</h2>
+            <p>Загрузите фото продуктов, чтобы получить рецепт.</p>
+            <div style="margin: 20px 0;">
+                <input type="file" id="photoInput" accept="image/*" style="margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;">
+                <button id="analyzeBtn" class="btn" style="margin: 10px 0;">Получить рецепт</button>
+            </div>
+            <div id="loading" style="display: none; font-weight: bold; color: #3498db;">Загрузка...</div>
+            <div id="result" style="text-align: left; margin-top: 20px;"></div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <form name="email-form" method="POST" data-netlify="true">
+                <input type="hidden" name="form-name" value="email-form" />
+                <input type="email" name="email" placeholder="you@example.com" required style="padding: 10px; font-size: 1em; border-radius: 5px; border: 1px solid #ccc; width: 60%; max-width: 300px;" />
+                <button type="submit" class="btn" style="padding: 10px 20px; font-size: 1em; margin-top: 10px;">Подписаться</button>
+            </form>
+            <p style="font-size: 0.9em; color: #7f8c8d; margin-top: 10px;">Никакого спама, только новости проекта.</p>
         </div>
 
         <div class="footer">
             © 2026 Zest Smart · <a href="mailto:hello.zestsmart@gmail.com">hello.zestsmart@gmail.com</a>
         </div>
     </div>
+<script>
+  document.getElementById('analyzeBtn').addEventListener('click', async function() {
+    const fileInput = document.getElementById('photoInput');
+    const resultDiv = document.getElementById('result');
+    const loadingDiv = document.getElementById('loading');
+
+    if (!fileInput.files[0]) {
+      alert('Выберите фото');
+      return;
+    }
+
+    loadingDiv.style.display = 'block';
+    resultDiv.innerHTML = '';
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const base64Image = e.target.result.split(',')[1];
+
+      try {
+        const response = await fetch('/.netlify/functions/get-recipe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64Image })
+        });
+
+        const data = await response.json();
+        if (data.error) {
+          resultDiv.innerHTML = `<p>Ошибка: ${data.error}</p>`;
+        } else {
+          // Отображаем результаты
+          let html = '<h3>Распознано на фото</h3>';
+          html += '<p>' + data.detected_products.join(', ') + '</p>';
+
+          html += '<h3>' + data.title + '</h3>';
+          html += '<h4>Ингредиенты</h4><ul>';
+          data.ingredients.forEach(ing => {
+            html += `<li>${ing.name} — ${ing.quantity}</li>`;
+          });
+          html += '</ul>';
+
+          html += '<h4>Шаги приготовления</h4><ol>';
+          data.steps.forEach(step => {
+            html += `<li>${step}</li>`;
+          });
+          html += '</ol>';
+
+          // Недостающие продукты (сравниваем detected_products с ингредиентами)
+          const detected = data.detected_products.map(p => p.toLowerCase().trim());
+          const missing = data.ingredients.filter(ing => {
+            const name = ing.name.toLowerCase().trim();
+            return !detected.some(d => name.includes(d) || d.includes(name));
+          });
+
+          if (missing.length > 0) {
+            html += '<h4>Недостающие продукты</h4><ul>';
+            missing.forEach(ing => {
+              const searchUrl = `https://www.ozon.ru/search/?text=${encodeURIComponent(ing.name)}`;
+              html += `<li>${ing.name} — ${ing.quantity} <a href="${searchUrl}" target="_blank">Заказать на Ozon</a></li>`;
+            });
+            html += '</ul>';
+          } else {
+            html += '<p style="color: green; font-weight: bold;">Все продукты есть! Можно готовить.</p>';
+          }
+
+          resultDiv.innerHTML = html;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<p style="color: red;">Ошибка соединения: ${error.message}</p>`;
+      } finally {
+        loadingDiv.style.display = 'none';
+      }
+    };
+    reader.readAsDataURL(fileInput.files[0]);
+  });
+</script>
 </body>
 </html>

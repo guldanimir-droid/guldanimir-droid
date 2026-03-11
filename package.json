@@ -1,0 +1,7 @@
+{
+  "name": "zest-smart",
+  "version": "1.0.0",
+  "dependencies": {
+    "openai": "^3.3.0"
+  }
+}
